@@ -120,7 +120,90 @@ int main(int argc, char* argv[])
         }
     }
 
+    auto accumulatedPredictionScore{0};
+    for(auto [predictedMove, prediction] : parsedInputData)
+    {
+        switch(predictedMove)
+        {
+            case 'A':
+            {
+                switch(prediction)
+                {
+                    case 'X':
+                    {
+                        accumulatedPredictionScore += 0 + 3;
+                        break;
+                    }
+                    case 'Y':
+                    {
+                        accumulatedPredictionScore += 3 + 1;
+                        break;
+                    }
+                    case 'Z':
+                    {
+                        accumulatedPredictionScore += 6 + 2;
+                        break;
+                    }
+                    default:
+                        std::cout << "Unrecognized response\n";
+                }
+                break;
+            }
+            case 'B':
+            {
+                switch(prediction)
+                {
+                    case 'X':
+                    {
+                        accumulatedPredictionScore += 0 + 1;
+                        break;
+                    }
+                    case 'Y':
+                    {
+                        accumulatedPredictionScore += 3 + 2;
+                        break;
+                    }
+                    case 'Z':
+                    {
+                        accumulatedPredictionScore += 6 + 3;
+                        break;
+                    }
+                    default:
+                        std::cout << "Unrecognized response\n";
+                }
+                break;
+            }
+            case 'C':
+            {
+                switch(prediction)
+                {
+                    case 'X':
+                    {
+                        accumulatedPredictionScore += 0 + 2;
+                        break;
+                    }
+                    case 'Y':
+                    {
+                        accumulatedPredictionScore += 3 + 3;
+                        break;
+                    }
+                    case 'Z':
+                    {
+                        accumulatedPredictionScore += 6 + 1;
+                        break;
+                    }
+                    default:
+                        std::cout << "Unrecognized response\n";
+                }
+                break;
+            }
+            default:
+                std::cout << "Unrecognized prediction\n";
+        }
+    }
+
     std::cout << "Task 1: Predicted Score: " << accumulatedScore << std::endl;
+    std::cout << "Task 2: Predicted Score: " << accumulatedPredictionScore << std::endl;
 
     return 0;
 }
