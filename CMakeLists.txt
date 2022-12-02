@@ -3,6 +3,8 @@ project(aoc2022 LANGUAGES CXX VERSION 1.0)
 
 include_directories(include)
 
+set (CMAKE_CXX_STANDARD 23)
+
 add_executable(aoc01
     src/main01.cpp
 )
