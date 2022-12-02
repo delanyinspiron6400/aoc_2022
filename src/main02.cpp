@@ -4,6 +4,24 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <unordered_map>
+
+std::unordered_map<char, std::string> printMap
+{
+    {'A', "Rock"},
+    {'B', "Paper"},
+    {'C', "Scissor"},
+    {'X', "Rock"},
+    {'Y', "Paper"},
+    {'Z', "Scissor"}
+};
+
+std::unordered_map<char, int> shapePointResolution
+{
+    {'A', 1},
+    {'B', 2},
+    {'C', 3}
+};
 
 int main(int argc, char* argv[])
 {
@@ -11,30 +29,98 @@ int main(int argc, char* argv[])
 
     std::ifstream file("../input/aoc02.txt");
 
-    auto input_calories{0};
-    std::vector<int> caloriesPerElfSum;
-
-    std::string line;
-    auto caloriesSum{0};
-    while (std::getline(file, line))
+    using InputData = std::vector<std::pair<char, char>>;
+    InputData parsedInputData;
+    char prediction, move;
+    while(file >> prediction >> move)
     {
-        std::istringstream iss(line);
-        if ((iss >> input_calories )) 
+        parsedInputData.emplace_back(prediction, move);
+    }
+
+
+    auto accumulatedScore{0};
+    for(auto [predictedMove, responseMove] : parsedInputData)
+    {
+        switch(predictedMove)
         {
-            caloriesSum += input_calories;
-        }
-        else
-        {
-            caloriesPerElfSum.emplace_back(caloriesSum);
-            caloriesSum = 0;
+            case 'A':
+            {
+                switch(responseMove)
+                {
+                    case 'X':
+                    {
+                        accumulatedScore += 3 + 1;
+                        break;
+                    }
+                    case 'Y':
+                    {
+                        accumulatedScore += 6 + 2;
+                        break;
+                    }
+                    case 'Z':
+                    {
+                        accumulatedScore += 0 + 3;
+                        break;
+                    }
+                    default:
+                        std::cout << "Unrecognized response\n";
+                }
+                break;
+            }
+            case 'B':
+            {
+                switch(responseMove)
+                {
+                    case 'X':
+                    {
+                        accumulatedScore += 0 + 1;
+                        break;
+                    }
+                    case 'Y':
+                    {
+                        accumulatedScore += 3 + 2;
+                        break;
+                    }
+                    case 'Z':
+                    {
+                        accumulatedScore += 6 + 3;
+                        break;
+                    }
+                    default:
+                        std::cout << "Unrecognized response\n";
+                }
+                break;
+            }
+            case 'C':
+            {
+                switch(responseMove)
+                {
+                    case 'X':
+                    {
+                        accumulatedScore += 6 + 1;
+                        break;
+                    }
+                    case 'Y':
+                    {
+                        accumulatedScore += 0 + 2;
+                        break;
+                    }
+                    case 'Z':
+                    {
+                        accumulatedScore += 3 + 3;
+                        break;
+                    }
+                    default:
+                        std::cout << "Unrecognized response\n";
+                }
+                break;
+            }
+            default:
+                std::cout << "Unrecognized prediction\n";
         }
     }
 
-    std::sort(caloriesPerElfSum.begin(), caloriesPerElfSum.end(), std::greater<int>());
-
-    std::cout << "Task 1: " << caloriesPerElfSum[0] << " kcal" << std::endl;
-
-    std::cout << "Task 2: " << caloriesPerElfSum[0] + caloriesPerElfSum[1] + caloriesPerElfSum[2]  << " kcal" << std::endl;
+    std::cout << "Task 1: Predicted Score: " << accumulatedScore << std::endl;
 
     return 0;
 }
