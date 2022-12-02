@@ -6,3 +6,7 @@ include_directories(include)
 add_executable(aoc01
     src/main01.cpp
 )
+
+add_executable(aoc02
+    src/main02.cpp
+)
