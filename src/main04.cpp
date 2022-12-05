@@ -38,9 +38,32 @@ int main(int argc, char* argv[])
 		elven_pair_int.emplace_back(std::pair<std::pair<int, int> , std::pair<int, int>>{{std::stoi(first_first), std::stoi(first_second)}, {std::stoi(second_first), std::stoi(second_second)}});
 	}
 
+	auto accumulatedInclusion{0};
+	auto accumulatedInclusionAny{0};
 	for(auto [first_elf, second_elf] : elven_pair_int)
 	{
+		auto [first_start, first_end] = first_elf;
+		auto [second_start, second_end] = second_elf;
 
+		auto overlap_min {std::max(first_start, second_start)};
+		auto overlap_max {std::min(first_end, second_end)};
+		if(overlap_min <= overlap_max)
+			++accumulatedInclusionAny;
+
+		if(first_start <= second_start && first_end >= second_end)
+		{
+			++accumulatedInclusion;
+			continue;
+		}
+
+		if(second_start <= first_start && second_end >= first_end)
+		{
+			++accumulatedInclusion;
+			continue;
+		}
 	}
+
+	std::cout << "Task 1: Included Range count: " << accumulatedInclusion << std::endl;
+	std::cout << "Task 2: Any Included Range count: " << accumulatedInclusionAny << std::endl;
 	return 0;
 }
