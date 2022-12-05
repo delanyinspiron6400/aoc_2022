@@ -46,36 +46,31 @@ int main(int argc, char* argv[])
         moves.emplace_back(move, from - 1, to - 1);
     }
 
-    // Print stacks
-    for(const auto& stack : stacks)
-    {
-        for(auto c : stack)
-            std::cout << c;
-        std::cout << std::endl;
-    }
-    std::cout << "----------------------\n";
-        
+    auto stacks_copy = stacks;
+
     for(auto [move, from, to] : moves)
     {
-        std::cout << "Move " << move << " items from " << from << " to " << to << std::endl;
         for(auto i {0}; i < move; ++i)
         {
             stacks[to].push_back(stacks[from].back());
             stacks[from].pop_back();
         }
-        
-        // Print stacks
-        for(const auto& stack : stacks)
-        {
-            for(auto c : stack)
-                std::cout << c;
-            std::cout << std::endl;
-        }
-        std::cout << "----------------------\n";
     }
 
     std::cout << "Task 1: ";
     for(auto& stack : stacks)
+        std::cout << stack.back();
+    std::cout << std::endl;
+
+
+    for(auto [move, from, to] : moves)
+    {
+        stacks_copy[to].insert(stacks_copy[to].end(), stacks_copy[from].end() - move, stacks_copy[from].end());
+        stacks_copy[from].erase(stacks_copy[from].end() - move, stacks_copy[from].end());
+    }
+
+    std::cout << "Task 2: ";
+    for(auto& stack : stacks_copy)
         std::cout << stack.back();
     std::cout << std::endl;
 
