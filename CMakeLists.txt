@@ -24,3 +24,7 @@ add_executable(aoc04
 add_executable(aoc05
     src/main05.cpp
 )
+
+add_executable(aoc06
+    src/main06.cpp
+)
