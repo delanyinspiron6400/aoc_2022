@@ -7,12 +7,35 @@
 #include <string_view>
 #include <bitset>
 
+// Ranges
+#include <range/v3/all.hpp>
+
 bool checkUniqueness(std::string_view string, int numUniqueCharacters = 4)
 {
     std::bitset<32> bitmask;
     for(auto c : string)
         bitmask.set(c - 'a');
     return bitmask.count() == numUniqueCharacters;
+}
+
+size_t findUniqueSequenceIndex(std::string_view input, int numUniqueCharacters = 4)
+{
+    auto result =
+        input | ranges::views::sliding(numUniqueCharacters) |
+        ranges::views::transform([numUniqueCharacters](auto view) {
+            return ranges::accumulate(view, std::bitset<32>(), [](auto & set, auto c) {
+                       set.set(c - 'a');
+                       return set;
+                   }).count() == numUniqueCharacters;
+        }) |
+        ranges::views::enumerate |
+        ranges::views::filter([](auto v) { return std::get<1>(v) == true; }) |
+        ranges::views::transform([](auto t) { return std::get<0>(t); }) |
+        ranges::views::take(1);
+
+    if(result.empty())
+        return 0;
+    return *result.begin() + numUniqueCharacters;
 }
 
 int main(int argc, char* argv[])
@@ -33,6 +56,8 @@ int main(int argc, char* argv[])
         }
     }
     std::cout << "Task 1 : Start Index at " << startPacketIndex << std::endl;
+    std::cout << "Task 1 : Start Index at " << findUniqueSequenceIndex(input, 4)
+              << std::endl;
 
     auto startMessageIndex{0};
     for(auto i = 14; i <= input.size(); ++i)
@@ -44,6 +69,8 @@ int main(int argc, char* argv[])
         }
     }
     std::cout << "Task 2 : Start Index at " << startMessageIndex << std::endl;
-	
-	return 0;
+    std::cout << "Task 1 : Start Index at " << findUniqueSequenceIndex(input, 14)
+              << std::endl;
+
+    return 0;
 }
