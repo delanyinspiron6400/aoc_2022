@@ -1,42 +1,34 @@
 cmake_minimum_required(VERSION 3.18)
 project(aoc2022 LANGUAGES CXX VERSION 1.0)
 
-find_package(range-v3 REQUIRED)
+add_library(common INTERFACE)
+
+# Dependencies from vcpkg
+find_package(fmt CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
+
+target_link_libraries(common INTERFACE
+  fmt::fmt
+  range-v3
+)
+
+set_property(TARGET common PROPERTY CXX_STANDARD 23)
+
+function(add_day_target DAY)
+  add_executable(aoc${DAY} src/main${DAY}.cpp)
+  target_link_libraries(aoc${DAY} PRIVATE common)
+  set_property(TARGET aoc${DAY} PROPERTY CXX_STANDARD 23)
+endfunction()
 
 include_directories(include)
 
 set (CMAKE_CXX_STANDARD 23)
 
-add_executable(aoc01
-    src/main01.cpp
-)
-
-add_executable(aoc02
-    src/main02.cpp
-)
-
-add_executable(aoc03
-    src/main03.cpp
-)
-
-add_executable(aoc04
-    src/main04.cpp
-)
-
-add_executable(aoc05
-    src/main05.cpp
-)
-
-add_executable(aoc06
-    src/main06.cpp
-)
-target_link_libraries(aoc06 PRIVATE range-v3)
-
-add_executable(aoc07
-    src/main07.cpp
-)
-
-add_executable(aoc08
-    src/main08.cpp
-)
-target_link_libraries(aoc08 PRIVATE range-v3)
+add_day_target(01)
+add_day_target(02)
+add_day_target(03)
+add_day_target(04)
+add_day_target(05)
+add_day_target(06)
+add_day_target(07)
+add_day_target(08)

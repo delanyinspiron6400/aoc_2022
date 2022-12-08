@@ -3,6 +3,7 @@
     "name": "aoc2022",
     "version": "1.0",
     "dependencies": [
+        "fmt",
         "range-v3"
     ]
 }

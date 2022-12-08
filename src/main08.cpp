@@ -10,6 +10,18 @@
 #include <ranges>
 
 #include <range/v3/all.hpp>
+#include <fmt/core.h>
+
+std::vector<std::vector<int>> parseTreeGrid(std::istream&& input)
+{
+  // using namespace ranges;
+  using namespace ranges::views;
+  using ranges::getlines;
+  using ranges::to;
+  return getlines(input) |
+         transform([](auto& view) { return view | transform([](char c) { return c - '0'; }) | to<std::vector<int>>; }) |
+         to<std::vector<std::vector<int>>>;
+}
 
 std::vector<std::vector<int>> MarkTreesVisible(const std::vector<std::vector<int>> treeGrid)
 {
@@ -192,26 +204,16 @@ int main(int argc, char* argv[])
 {
     std::cout << "*#*#*# AOC 08.12.2022 *#*#*#\n";
 
-    std::ifstream file("../input/aoc08.txt");
-    std::vector<std::vector<int>> treeGrid;
-    std::string input;
-    while(std::getline(file, input))
-    {
-        std::vector<int> treeLine;
-        for(auto c : input)
-            treeLine.emplace_back(c - '0');
-
-        treeGrid.emplace_back(std::move(treeLine));
-    }
+    auto treeGrid = parseTreeGrid(std::fstream("../input/aoc08.txt"));
 
     auto visibleGrid = MarkTreesVisible(treeGrid);
-
     auto treesVisible = ranges::accumulate(visibleGrid | ranges::views::join, 0);
-    std::cout << "Task 1: Number of Trees visible is: " << treesVisible << std::endl;
 
     auto treeScoreGrid = ComputeTreeScore(treeGrid);
     auto treeScore = ranges::max(treeScoreGrid | ranges::views::join);
 
-    std::cout << "Task 2: Best Score is: " << treeScore << std::endl;
+    fmt::print("Task 1: Number of Trees visible is: {}", treesVisible);
+    fmt::print("Task 2: Best Score is: {}", treesVisible);
+
     return 0;
 }
