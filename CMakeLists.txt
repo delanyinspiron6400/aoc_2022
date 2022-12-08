@@ -35,3 +35,8 @@ target_link_libraries(aoc06 PRIVATE range-v3)
 add_executable(aoc07
     src/main07.cpp
 )
+
+add_executable(aoc08
+    src/main08.cpp
+)
+target_link_libraries(aoc08 PRIVATE range-v3)
