@@ -12,6 +12,28 @@
 #include <range/v3/all.hpp>
 #include <fmt/core.h>
 
+size_t countVisibleTrees(const std::vector<std::vector<int>>& treeGrid);
+bool isTreeVisible(const std::vector<std::vector<int>>& treeGrid, size_t x, size_t y);
+std::vector<std::vector<int>> parseTreeGrid(std::istream&& input);
+std::vector<std::vector<int>> ComputeTreeScore(const std::vector<std::vector<int>> treeGrid);
+
+int main(int argc, char* argv[])
+{
+    std::cout << "*#*#*# AOC 08.12.2022 *#*#*#\n";
+
+    auto treeGrid = parseTreeGrid(std::fstream("../input/aoc08.txt"));
+
+    auto newTreesVisible {countVisibleTrees(treeGrid)};
+
+    auto treeScoreGrid = ComputeTreeScore(treeGrid);
+    auto treeScore = ranges::max(treeScoreGrid | ranges::views::join);
+
+    fmt::print("Task 1: Number of Trees visible is: {}\n", newTreesVisible);
+    fmt::print("Task 2: Best Score is: {}\n", treeScore);
+
+    return 0;
+}
+
 std::vector<std::vector<int>> parseTreeGrid(std::istream&& input)
 {
   // using namespace ranges;
@@ -21,91 +43,6 @@ std::vector<std::vector<int>> parseTreeGrid(std::istream&& input)
   return getlines(input) |
          transform([](auto& view) { return view | transform([](char c) { return c - '0'; }) | to<std::vector<int>>; }) |
          to<std::vector<std::vector<int>>>;
-}
-
-std::vector<std::vector<int>> MarkTreesVisible(const std::vector<std::vector<int>> treeGrid)
-{
-    auto visibleGrid = treeGrid;
-    // Set to zero
-    for(auto& treeLine : visibleGrid)
-        std::ranges::fill(treeLine, 0);
-
-    // Go over grid from all sides
-    auto rowsCount{treeGrid.size()};
-    auto columnCount{treeGrid[0].size()};
-
-    // Left to Right
-    for(auto row = 0u; row < rowsCount; ++row)
-    {
-        auto maxHeight{-1};
-        for(auto column = 0u; column < columnCount; ++column)
-        {
-            auto height{treeGrid[row][column]};
-            if(height > maxHeight)
-            {
-                visibleGrid[row][column] = 1;
-                maxHeight = height;
-            }
-        }
-    }
-
-    // Right to Left
-    for(auto row = 0u; row < rowsCount; ++row)
-    {
-        auto maxHeight{-1};
-        for(int column = columnCount - 1; column >= 0; --column)
-        {
-            auto height{treeGrid[row][column]};
-            if(height > maxHeight)
-            {
-                visibleGrid[row][column] = 1;
-                maxHeight = height;
-            }
-        }
-    }
-
-    // Top to Bottom
-    for(auto column = 0u; column < columnCount; ++column)
-    {
-        auto maxHeight{-1};
-        for(auto row = 0u; row < rowsCount; ++row)
-        {
-            auto height{treeGrid[row][column]};
-            if(height > maxHeight)
-            {
-                visibleGrid[row][column] = 1;
-                maxHeight = height;
-            }
-        }
-    }
-
-    // Bottom to Top
-    for(auto column = 0u; column < columnCount; ++column)
-    {
-        auto maxHeight{-1};
-        for(int row = rowsCount - 1; row >= 0; --row)
-        {
-            auto height{treeGrid[row][column]};
-            if(height > maxHeight)
-            {
-                visibleGrid[row][column] = 1;
-                maxHeight = height;
-            }
-        }
-    }
-
-    // auto count{0};
-    // for(auto& line : visibleGrid)
-    // {
-    //     for(auto c : line)
-    //     {
-    //         count += c;
-    //         std::cout << c;
-    //     }
-    //     std::cout << std::endl;
-    // }
-
-    return visibleGrid;
 }
 
 std::vector<std::vector<int>> ComputeTreeScore(const std::vector<std::vector<int>> treeGrid)
@@ -198,22 +135,34 @@ std::vector<std::vector<int>> ComputeTreeScore(const std::vector<std::vector<int
     return treeScoreGrid;
 }
 
-
-
-int main(int argc, char* argv[])
+bool isTreeVisible(const std::vector<std::vector<int>>& treeGrid, std::size_t x, std::size_t y)
 {
-    std::cout << "*#*#*# AOC 08.12.2022 *#*#*#\n";
+  using namespace ranges;
+  auto view_left = treeGrid[y] | views::take(x);
+  auto view_right = treeGrid[y] | views::drop(x + 1);
 
-    auto treeGrid = parseTreeGrid(std::fstream("../input/aoc08.txt"));
+  auto view_topdown = treeGrid | views::transform([x](const auto& view) { return view[x]; });
+  auto view_top = view_topdown | views::take(y);
+  auto view_bottom = view_topdown | views::drop(y + 1);
 
-    auto visibleGrid = MarkTreesVisible(treeGrid);
-    auto treesVisible = ranges::accumulate(visibleGrid | ranges::views::join, 0);
+  auto isSmaller = [compare = treeGrid[y][x]](int h) { return h < compare; };
 
-    auto treeScoreGrid = ComputeTreeScore(treeGrid);
-    auto treeScore = ranges::max(treeScoreGrid | ranges::views::join);
+  return ranges::all_of(view_left, isSmaller) || ranges::all_of(view_right, isSmaller) ||
+         ranges::all_of(view_top, isSmaller) || ranges::all_of(view_bottom, isSmaller);
+}
 
-    fmt::print("Task 1: Number of Trees visible is: {}", treesVisible);
-    fmt::print("Task 2: Best Score is: {}", treesVisible);
-
-    return 0;
+size_t countVisibleTrees(const std::vector<std::vector<int>>& treeGrid)
+{
+  using namespace ranges::views;
+  return ranges::accumulate(treeGrid |
+    enumerate | 
+    transform([&treeGrid](const auto& rows)
+    {
+        return ranges::count_if(iota(0u, treeGrid[std::get<0>(rows)].size()),
+                                [&treeGrid, &rows](auto col_index) 
+                                {
+                                    return isTreeVisible(treeGrid, col_index, std::get<0>(rows));
+                                });
+    }),
+     0);
 }
