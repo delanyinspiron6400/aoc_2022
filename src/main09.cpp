@@ -44,7 +44,7 @@ struct Vec
 
   unsigned int CreateUniqueHashableValue() const
   {
-    return static_cast<unsigned int>(x + 1000) * 2000 + static_cast<unsigned int>(y + 1000);
+    return static_cast<unsigned int>(x + 1000) * 4000 + static_cast<unsigned int>(y + 1000);
   }
 };
 
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 {
     std::cout << "*#*#*# AOC 09.12.2022 *#*#*#\n";
 
-    auto motionSeries = ParseMovements(std::fstream("../input/aoc09.txt"));
+    auto motionSeries = ParseMovements(std::fstream("../input/aoc09_01.txt"));
 
     // for(auto& motion : motionSeries)
     // {
@@ -117,7 +117,7 @@ int CountVisitedPositions(const Vecs& directions)
             if(tailPos.isTouching(headPos))
                 continue;
             
-            if(tailPos.isCorner(headPos))
+            if(tailPos.isCorner(tmpPos))
                 tailPos = tmpPos; // Move diagonally
             else
                 tailPos += dir; // Move straight
@@ -140,38 +140,38 @@ int CountVisitedPositionsLong(const Vecs& directions)
     std::fill(positions.begin(), positions.end(), Vec{0,0});
     visitedPositions.insert(positions[9].CreateUniqueHashableValue());
 
-    // for(const auto& [dir, length] : directions)
-    // {
-    //     auto oldHeadPos{headPos};
-    //     headPos += dir.CreateMovement(length);
-    //     if(tailPos.isTouching(headPos))
-    //     {
-    //         fmt::print("No movement needed Head ({},{}) and Tail ({},{})\n", headPos.x, headPos.y, tailPos.x, tailPos.y);
-    //     }
-    //     else
-    //     {
-    //         // Need to find out how much movement was needed
-    //         for(auto i {0}; i < length; ++i)
-    //         {
-    //             auto tmpPos{oldHeadPos};
-    //             oldHeadPos += dir;
-    //             if(tailPos.isTouching(oldHeadPos))
-    //                 continue;
+
+    for(const auto& [dir, length] : directions)
+    {
+        // Need to find out how much movement was needed
+        fmt::print("Movement ({},{}) * {}\n", dir.x, dir.y, length);
+        for(auto i {0}; i < length; ++i)
+        {
+            auto old_positions = positions;
+            positions[0] += dir;
+            
+            for(auto current{0}, next{1}; next < 10; ++current, ++next)
+            {
+                auto tmpPos{old_positions[current]};
+                    
+                if(positions[next].isTouching(positions[current]))
+                    continue;
                 
-    //             if(tailPos.isCorner(oldHeadPos))
-    //                 tailPos = tmpPos; // Move diagonally
-    //             else
-    //                 tailPos += dir; // Move straight
+                if(positions[next].isCorner(tmpPos))
+                    positions[next] = tmpPos; // Move diagonally
+                else
+                    positions[next] += dir; // Move straight
+                
+                 fmt::print("{} Pos ({}, {}) and {} Pos ({}, {})\n", current, positions[current].x, positions[current].y, next,  positions[next].x, positions[next].y);
+            }
 
-    //             fmt::print("New Head Pos ({}, {}) and Tail Pos ({}, {})\n", oldHeadPos.x, oldHeadPos.y, tailPos.x, tailPos.y);
-    //             visitedPositions.insert(tailPos.CreateUniqueHashableValue());
-    //         }
-    //     }
+            fmt::print("New Head Pos ({}, {}) and Tail Pos ({}, {})\n", positions[0].x, positions[0].y, positions[9].x, positions[9].y);
+            visitedPositions.insert(positions[9].CreateUniqueHashableValue());
+        }
 
-
-    //     fmt::print("Headpos ({}, {}) and Tailpos ({}, {})\n", headPos.x, headPos.y, tailPos.x, tailPos.y);
-    //     fmt::print("------------------------------\n");
-    // }
+        // fmt::print("Headpos ({}, {}) and Tailpos ({}, {})\n", headPos.x, headPos.y, tailPos.x, tailPos.y);
+        // fmt::print("------------------------------\n");
+    }
 
     return std::ssize(visitedPositions);
 }
