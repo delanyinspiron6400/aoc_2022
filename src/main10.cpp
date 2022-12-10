@@ -34,7 +34,6 @@ int main(int argc, char* argv[])
 
     auto sumSignalStrengths{ComputeSumSignalStrengths(commands)};
     fmt::print("Task 1: The sum of the six signal strengths is: {}\n", sumSignalStrengths);
-    fmt::print("Task 2: \n");
 
     return 0;
 }
@@ -84,6 +83,21 @@ int ComputeSumSignalStrengths(const Input& commands)
         }
     }
 
+    std::vector<std::string> display;
+    for(auto row = 0; row < 6; ++row)
+    {
+        display.emplace_back(40, '.');
+        for(auto column = 0; column < 40; ++column)
+        {
+            auto index{row * 40 + column};
+            if((column >= signalStrengths[index] - 1) && (column <= signalStrengths[index] + 1))
+                display[row][column] = '#';
+        }
+    }
+
+    fmt::print("Display\n");
+    for(auto& line : display)
+        std::cout << line << std::endl;
+
     return (signalStrengths[19] * 20) + (signalStrengths[59] * 60) + (signalStrengths[99] * 100) + (signalStrengths[139] * 140) + (signalStrengths[179] * 180) + (signalStrengths[219] * 220);
 }
-
