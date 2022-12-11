@@ -32,16 +32,6 @@ struct Vec
     return (pos.x >= (x - 1)) && (pos.x <= (x + 1)) && (pos.y >= (y - 1)) && (pos.y <= (y + 1));
   }
 
-  bool isCorner(const Vec& pos) const
-  {
-    return (pos.x != x) && (pos.y != y);
-  }
-
-  Vec CreateMovement(int length) const
-  {
-    return {x * length, y * length};
-  }
-
   unsigned int CreateUniqueHashableValue() const
   {
     return static_cast<unsigned int>(x + 1000) * 4000 + static_cast<unsigned int>(y + 1000);
