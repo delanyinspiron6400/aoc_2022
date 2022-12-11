@@ -19,6 +19,11 @@ enum class Operation
     MUL
 };
 
+bool wouldOverflow(size_t val, size_t multiplicator)
+{
+    return (std::numeric_limits<size_t>::max() / multiplicator) < val;
+}
+
 struct Monkey
 {
     std::vector<size_t> items;
@@ -30,6 +35,8 @@ struct Monkey
     size_t performOperation(size_t value)
     {
         auto tmp{operation.second != std::numeric_limits<size_t>::max() ? operation.second : value};
+        if(wouldOverflow(value, tmp))
+            fmt::print("Overflow problem\n");
         return operation.first == Operation::ADD ? value + tmp : value * tmp;
     }
 
