@@ -43,6 +43,7 @@ using Input = std::vector<std::pair<List, List>>;
 
 Input ParseInput(std::istream&& input);
 int ComputeValidPairs(const Input & pairs);
+int SortAndFindDecoder(const Input & pairs);
 
 int main(int argc, char* argv[])
 {
@@ -53,6 +54,10 @@ int main(int argc, char* argv[])
     auto sumValidPairs{ComputeValidPairs(pairs)};
 
     fmt::print("Task 1: Valid pairs sum is: {}\n", sumValidPairs);
+
+    auto decoderKey(SortAndFindDecoder(pairs));
+
+    fmt::print("Task 2: Decoder Key: {}\n", decoderKey);
 
     return 0;
 }
@@ -249,4 +254,49 @@ int ComputeValidPairs(const Input & pairs)
     }
 
     return indexSum;
+}
+
+int SortAndFindDecoder(const Input & pairs)
+{
+    std::vector<List> condensedInput;
+    for(const auto& [list1, list2] : pairs)
+    {
+        condensedInput.emplace_back(list1);
+        condensedInput.emplace_back(list2);
+    }
+    List insert2{.items = {List{.items = {2}}}};
+    List insert6{.items = {List{.items = {6}}}};
+    condensedInput.emplace_back(insert2);
+    condensedInput.emplace_back(insert6);
+
+    ranges::sort(condensedInput, [](const auto& list1, const auto& list2){ return compareLists(list1, list2) != Comp::Break;});
+
+    auto retVal{1};
+    for(const auto& [list_index, list] : ranges::views::enumerate(condensedInput))
+    {
+        // list.print();
+        // std::cout << std::endl;
+        if(list.items.size() == 1)
+        {
+            if(std::holds_alternative<List>(list.items[0]))
+            {
+                auto& innerList{std::get<List>(list.items[0])};
+                if(innerList.items.size() == 1)
+                {
+                    if(std::holds_alternative<int>(innerList.items[0]))
+                    {
+                        auto value{std::get<int>(innerList.items[0])};
+                        if(value == 2 || value == 6)
+                        {
+                            retVal *= (list_index + 1);
+                            // std::cout << "Found it at index: " << list_index << std::endl;
+                        }
+                        
+                    }
+                }
+            }
+        }
+    }
+
+    return retVal;
 }
