@@ -149,9 +149,9 @@ Input ParseInput(std::istream && input)
 
 enum class Comp
 {
-    SMALLER,
-    EQUAL,
-    LARGER
+    Done,
+    Continue,
+    Break
 };
 
 Comp compareInts(int first, int second)
@@ -159,66 +159,86 @@ Comp compareInts(int first, int second)
     if(first <= second)
     {
         if(first == second)
-            return Comp::EQUAL;
-        return Comp::SMALLER;
+            return Comp::Continue;
+        return Comp::Done;
     }
     else
     {
-        return Comp::LARGER;
+        return Comp::Break;
     }
 }
 
-bool compareLists(const List & list1, const List & list2)
+Comp compareLists(const List & list1, const List & list2)
 {
-    return true;
+    auto itemCount{std::min(list1.items.size(), list2.items.size())};
+    for(auto index : ranges::views::iota(0, static_cast<int>(itemCount)))
+    {
+        if(std::holds_alternative<int>(list1.items[index]) &&
+            std::holds_alternative<int>(list2.items[index]))
+        {
+            auto firstValue{std::get<int>(list1.items[index])};
+            auto secondValue{std::get<int>(list2.items[index])};
+            auto comparisonResult{compareInts(firstValue, secondValue)};
+            if(comparisonResult == Comp::Done || comparisonResult == Comp::Break)
+                return comparisonResult;
+            else
+                continue;
+        }
+        else if(std::holds_alternative<List>(list1.items[index]) &&
+                std::holds_alternative<List>(list2.items[index]))
+        {
+            auto& firstList{std::get<List>(list1.items[index])};
+            auto& secondList{std::get<List>(list2.items[index])};
+            auto compValue{compareLists(firstList, secondList)};
+            if(compValue == Comp::Continue)
+                continue;
+            return compValue;
+        }
+        else
+        {
+            if(std::holds_alternative<int>(list1.items[index]))
+            {
+                // std::cout << "First one is int, second list\n";
+                List tmp_list;
+                tmp_list.items.push_back(list1.items[index]);
+                auto compValue{compareLists(tmp_list, std::get<List>(list2.items[index]))};
+                if(compValue == Comp::Continue)
+                    continue;
+                return compValue;
+            }
+            else
+            {
+                // std::cout << "First one is list, second int\n";
+                List tmp_list;
+                tmp_list.items.push_back(list2.items[index]);
+                auto compValue{compareLists(std::get<List>(list1.items[index]), tmp_list)};
+                if(compValue == Comp::Continue)
+                    continue;
+                return compValue;
+            }
+        }
+    }
+
+    if(list1.items.size() < list2.items.size())
+        return Comp::Done;
+    else if (list1.items.size() > list2.items.size())
+        return Comp::Break;
+
+    return Comp::Continue;
 }
 
 int ComputeValidPairs(const Input & pairs)
 {
     Input successfulPairs;
+    int indexSum{0};
     for(const auto & [listIndex, list] : ranges::views::enumerate(pairs))
     {
         const auto & [list1, list2]{list};
-        // list1.print();
-        // std::cout << std::endl;
-        // list2.print();
-        // std::cout << std::endl;
-        // std::cout << "................\n";
-        auto itemCount{std::min(list1.items.size(), list2.items.size())};
-        for(auto index : ranges::views::iota(0, static_cast<int>(itemCount)))
+        if(compareLists(list1, list2) != Comp::Break)
         {
-            if(std::holds_alternative<int>(list1.items[index]) &&
-               std::holds_alternative<int>(list2.items[index]))
-            {
-                auto firstValue{std::get<int>(list1.items[index])};
-                auto secondValue{std::get<int>(list2.items[index])};
-                auto comparisonResult{compareInts(firstValue, secondValue)};
-                if(comparisonResult == Comp::SMALLER)
-                {
-                    successfulPairs.emplace_back(pairs[listIndex]);
-                    break;
-                }
-                else if(comparisonResult == Comp::LARGER)
-                    break;
-                else
-                    continue;
-            }
-            else if(std::holds_alternative<List>(list1.items[index]) &&
-                    std::holds_alternative<List>(list2.items[index]))
-            {
-                std::cout << "Both Lists" << std::endl;
-            }
-            else
-            {
-                if(std::holds_alternative<int>(list1.items[index]))
-                {
-                    std::cout << "First one is int, second list\n";
-                }
-                else
-                {
-                    std::cout << "First one is list, second int\n";
-                }
-            }
+            // fmt::print("Pair {} is valid\n", listIndex);
+            successfulPairs.emplace_back(list);
+            indexSum += (listIndex + 1);
         }
     }
 
@@ -228,5 +248,5 @@ int ComputeValidPairs(const Input & pairs)
         ++sumSuccessfullPairs;
     }
 
-    return sumSuccessfullPairs;
+    return indexSum;
 }
