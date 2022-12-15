@@ -77,13 +77,13 @@ struct Grid
 
     bool isInBounds(const Point & point)
     {
-        fmt::print("Is in Bounds {},{}\n", point.x, point.y);
+        // fmt::print("Is in Bounds {},{}\n", point.x, point.y);
         return (point.x >= 0) && (point.x < cols) && (point.y >= 0) && (point.y < rows);
     }
 
     bool isFree(const Point & point)
     {
-        fmt::print("Is free {},{}\n", point.x, point.y);
+        // fmt::print("Is free {},{}\n", point.x, point.y);
         return grid[point.y][point.x] == CellContent::AIR;
     }
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 {
     std::cout << "*#*#*# AOC 14.12.2022 *#*#*#\n";
 
-    auto traces = ParseInput(std::fstream("../input/aoc14.txt"));
+    auto traces = ParseInput(std::fstream("../input/aoc14_test.txt"));
 
     // for(auto & trace : traces)
     // {
@@ -164,8 +164,6 @@ int SimulateSand(const Input & traces)
 
     Grid cells(yExtent + 1, xExtent);
 
-    cells.Print();
-
     auto alignedTraces = traces;
     for(auto & line : alignedTraces)
     {
@@ -208,6 +206,9 @@ int SimulateSand(const Input & traces)
     {
         if(!ThrowSandOntoRocks(cells, sandEntryStartingPos))
             break;
+
+        // cells.Print();
+        // std::getchar();
         ++sandCount;
     }
 
@@ -221,15 +222,37 @@ int SimulateSand(const Input & traces)
 bool ThrowSandOntoRocks(Grid & grid, Point position)
 {
     static constexpr Point downVec{0, 1};
-    static constexpr Point leftVec{-1, 1};
-    static constexpr Point rightVec{1, 1};
+    static constexpr Point leftVec{-1, 0};
+    static constexpr Point rightVec{2, 0};
+    bool continueThrowingSand{false};
     // Find correct position
     while(true)
     {
+        auto current_position{position};
         position += downVec;
-        if(!grid.isFree(position))
-        {
-            // Test left
-        }
+        if(!grid.isInBounds(position))
+            break;
+        if(grid.isFree(position))
+            continue;
+
+        // Test left
+        position += leftVec;
+        if(!grid.isInBounds(position))
+            break;
+        if(grid.isFree(position))
+            continue;
+
+        // Test left
+        position += rightVec;
+        if(!grid.isInBounds(position))
+            break;
+        if(grid.isFree(position))
+            continue;
+
+        grid.MarkPosition(current_position, CellContent::SAND);
+        continueThrowingSand = true;
+        break;
     }
+
+    return continueThrowingSand;
 }
