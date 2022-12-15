@@ -206,7 +206,7 @@ int SimulateSand(const Input & traces)
     auto sandCount{0};
     while(true)
     {
-        if(!ThrowSandOntoRocks(grid, sandEntryStartingPos))
+        if(!ThrowSandOntoRocks(cells, sandEntryStartingPos))
             break;
         ++sandCount;
     }
