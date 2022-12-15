@@ -104,25 +104,18 @@ struct Grid
 };
 
 Input ParseInput(std::istream&& input);
-int SimulateSand(const Input & traces);
-bool ThrowSandOntoRocks(Grid & grid, Point startingPosition);
+int SimulateSand(const Input & traces, bool lowerPlane = false);
+bool ThrowSandOntoRocks(Grid & grid, Point startingPosition, bool lowerPlane = false,
+                        int depth = 0);
 
 int main(int argc, char* argv[])
 {
     std::cout << "*#*#*# AOC 14.12.2022 *#*#*#\n";
 
-    auto traces = ParseInput(std::fstream("../input/aoc14_test.txt"));
+    auto traces = ParseInput(std::fstream("../input/aoc14.txt"));
 
-    // for(auto & trace : traces)
-    // {
-    //     for(auto & point : trace)
-    //     {
-    //         fmt::print("{},{} ->", point.x, point.y);
-    //     }
-    //     fmt::print("\n");
-    // }
-
-    fmt::print("Units of Sand : {}\n", SimulateSand(traces));
+    fmt::print("Task 1: Units of Sand : {}\n", SimulateSand(traces));
+    fmt::print("Task 2: Units of Sand : {}\n", SimulateSand(traces, true));
 
     return 0;
 }
@@ -147,7 +140,7 @@ Input ParseInput(std::istream && input)
            to<std::vector<Line>>;
 }
 
-int SimulateSand(const Input & traces)
+int SimulateSand(const Input & traces, bool lowerPlane)
 {
     // Find maximum extent
     auto xMax{ranges::max(traces | ranges::views::join |
@@ -160,9 +153,11 @@ int SimulateSand(const Input & traces)
                           ranges::views::transform([](auto point) { return point.y; }))};
 
     auto xExtent{xMax - xMin};
+    if(lowerPlane)
+        xExtent += 2 * yMax;
     auto yExtent{yMax};
 
-    Grid cells(yExtent + 1, xExtent);
+    Grid cells(yExtent + 1 + (lowerPlane ? 2 : 0), xExtent + 1);
 
     auto alignedTraces = traces;
     for(auto & line : alignedTraces)
@@ -170,6 +165,8 @@ int SimulateSand(const Input & traces)
         for(auto & point : line)
         {
             point.x -= xMin;
+            if(lowerPlane)
+                point.x += yMax;
         }
     }
 
@@ -181,7 +178,7 @@ int SimulateSand(const Input & traces)
             auto endPoint{trace[i + 1]};
 
             Point vec{endPoint.x - startPoint.x, endPoint.y - startPoint.y};
-            auto length{(vec.x != 0) ? vec.x : vec.y};
+            auto length{(vec.x != 0) ? std::abs(vec.x) : std::abs(vec.y)};
             vec /= length;
 
             cells.MarkPosition(startPoint, CellContent::ROCK);
@@ -192,34 +189,27 @@ int SimulateSand(const Input & traces)
             }
         }
     }
-    std::cout << "\n\n\n";
 
-    cells.Print();
-
-    std::cout << "\n\n\n";
+    // cells.Print();
 
     // Fill in sand
-    Point sandEntryStartingPos{.x = 500 - xMin, .y = -1};
+    Point sandEntryStartingPos{.x = 500 - xMin + (lowerPlane ? yMax : 0), .y = -1};
 
     auto sandCount{0};
-    while(true)
+    while(cells.isFree({sandEntryStartingPos.x, sandEntryStartingPos.y + 1}))
     {
-        if(!ThrowSandOntoRocks(cells, sandEntryStartingPos))
+        if(!ThrowSandOntoRocks(cells, sandEntryStartingPos, lowerPlane, yExtent + 2))
             break;
 
-        // cells.Print();
-        // std::getchar();
         ++sandCount;
     }
+    // std::cout << "\n\n";
+    // cells.Print();
 
-    cells.Print();
-
-    // fmt::print("{} {} {} {}\n", xMax, xMin, yMax, yMin);
-    // fmt::print("{} {}\n", xExtent, yExtent);
     return sandCount;
 }
 
-bool ThrowSandOntoRocks(Grid & grid, Point position)
+bool ThrowSandOntoRocks(Grid & grid, Point position, bool lowerPlane, int depth)
 {
     static constexpr Point downVec{0, 1};
     static constexpr Point leftVec{-1, 0};
@@ -230,6 +220,12 @@ bool ThrowSandOntoRocks(Grid & grid, Point position)
     {
         auto current_position{position};
         position += downVec;
+        if(lowerPlane && position.y == depth)
+        {
+            grid.MarkPosition(current_position, CellContent::SAND);
+            continueThrowingSand = true;
+            break;
+        }
         if(!grid.isInBounds(position))
             break;
         if(grid.isFree(position))
