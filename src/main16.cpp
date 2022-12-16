@@ -25,12 +25,10 @@ using FlowRate = int;
 using Tunnels = std::vector<Valve>;
 using Input = std::vector<std::tuple<Valve, FlowRate, Tunnels>>;
 
-Input ParseInput(std::istream && input);
+Input ParseInput(auto && input);
+int PressureReleased(const auto & valves);
 
-int CountFieldsWithoutBeacon(const Input & input);
-int64_t FindPossibleLocation(const Input & input);
-
-int main(int argc, char * argv[])
+auto main(int argc, char * argv[]) -> int
 {
     std::cout << "*#*#*# AOC 16.12.2022 *#*#*#\n";
 
@@ -44,10 +42,12 @@ int main(int argc, char * argv[])
         fmt::print("\n");
     }
 
+    fmt::print("Task 1: Most pressure released: {}\n", PressureReleased(valveInfo));
+
     return 0;
 }
 
-int ValveTranslation(auto & remappingMap, const std::string & str)
+auto ValveTranslation(auto & remappingMap, const auto & str) -> int
 {
     if(remappingMap.find(str) != remappingMap.end())
     {
@@ -61,7 +61,7 @@ int ValveTranslation(auto & remappingMap, const std::string & str)
     }
 }
 
-Input ParseInput(std::istream && input)
+auto ParseInput(auto && input) -> Input
 {
     // using namespace ranges;
     using namespace ranges::views;
@@ -86,4 +86,10 @@ Input ParseInput(std::istream && input)
                return std::tuple<Valve, FlowRate, Tunnels>{valve, rate, tunnels};
            }) |
            to<Input>;
+}
+
+auto PressureReleased(const auto & valves) -> int
+{
+    
+    return 0;
 }
