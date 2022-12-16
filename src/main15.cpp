@@ -71,8 +71,47 @@ Input ParseInput(std::istream && input)
     return inputParsed;
 }
 
+int ManhattanDistance(const Sensor& s, const Beacon& b)
+{
+    return std::abs(s.first - b.first) + std::abs(s.second - b.second);
+}
+
 int CountFieldsWithoutBeacon(const Input & input)
 {
+    // Compute Manhattan Distance
+    std::vector<int> d;
+    std::pair<int, int> sXMinMax{std::numeric_limits<int>::max(), std::numeric_limits<int>::min()};
+    std::pair<int, int> bXMinMax{std::numeric_limits<int>::max(), std::numeric_limits<int>::min()};
+    for(const auto&[s, b] : input)
+    {
+        sXMinMax.first = std::min(sXMinMax.first, s.first);
+        sXMinMax.second = std::max(sXMinMax.second, s.second);
+        bXMinMax.first = std::min(bXMinMax.first, b.first);
+        bXMinMax.second = std::max(bXMinMax.second, b.second);
+        
+        d.emplace_back(ManhattanDistance(s, b));
+    }
+
+    auto dMax{ranges::max(d)};
+    auto minX{std::min(sXMinMax.first, bXMinMax.first)};
+    auto maxX{std::min(sXMinMax.second, bXMinMax.second)};
+
+    // row 2000000
+    auto invalidCount{0};
+    for(auto x = minX - dMax; x < maxX; ++x)
+    {
+        Beacon beak {x, 2000000};
+        for(const auto& [index, dist] : ranges::views::enumerate(d))
+        {
+            auto posDis{ManhattanDistance(input[index].first, beak)};
+            if(posDis <= dist)
+            {
+                ++invalidCount;
+                break;
+            }
+        }
+    }
+    
 
     return 0;
 }
