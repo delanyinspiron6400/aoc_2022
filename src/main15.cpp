@@ -5,6 +5,7 @@
 #include <fmt/core.h>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <queue>
 #include <ranges>
@@ -25,6 +26,7 @@ using Input = std::vector<std::pair<Sensor, Beacon>>;
 Input ParseInput(std::istream&& input);
 
 int CountFieldsWithoutBeacon(const Input & input);
+int64_t FindPossibleLocation(const Input & input);
 
 int main(int argc, char* argv[])
 {
@@ -32,16 +34,16 @@ int main(int argc, char* argv[])
 
     auto coords = ParseInput(std::fstream("../input/aoc15.txt"));
 
-    for(auto & [sensor, beacon] : coords)
-    {
-        auto & [sx, sy]{sensor};
-        auto & [bx, by]{beacon};
-        fmt::print("{} {} {} {}\n", sx, sy, bx, by);
-    }
+    // for(auto & [sensor, beacon] : coords)
+    // {
+    //     auto & [sx, sy]{sensor};
+    //     auto & [bx, by]{beacon};
+    //     fmt::print("{} {} {} {}\n", sx, sy, bx, by);
+    // }
 
     fmt::print("Task 1: Number of fields without beacon {}\n",
                CountFieldsWithoutBeacon(coords));
-    fmt::print("Task 2: \n");
+    fmt::print("Task 2: Possible location {}\n", FindPossibleLocation(coords));
 
     return 0;
 }
@@ -78,40 +80,58 @@ int ManhattanDistance(const Sensor& s, const Beacon& b)
 
 int CountFieldsWithoutBeacon(const Input & input)
 {
-    // Compute Manhattan Distance
-    std::vector<int> d;
-    std::pair<int, int> sXMinMax{std::numeric_limits<int>::max(), std::numeric_limits<int>::min()};
-    std::pair<int, int> bXMinMax{std::numeric_limits<int>::max(), std::numeric_limits<int>::min()};
-    for(const auto&[s, b] : input)
-    {
-        sXMinMax.first = std::min(sXMinMax.first, s.first);
-        sXMinMax.second = std::max(sXMinMax.second, s.second);
-        bXMinMax.first = std::min(bXMinMax.first, b.first);
-        bXMinMax.second = std::max(bXMinMax.second, b.second);
-        
-        d.emplace_back(ManhattanDistance(s, b));
-    }
+    static constexpr int rowIndex{2000000};
+    return static_cast<int>(
+        ranges::accumulate(ranges::views::all(input),
+                           std::unordered_set<int>(),
+                           [](auto & set, auto pair) {
+                               const auto & [sensor, beacon]{pair};
+                               const auto & [sX, sY]{sensor};
+                               auto reach = ManhattanDistance(sensor, beacon);
 
-    auto dMax{ranges::max(d)};
-    auto minX{std::min(sXMinMax.first, bXMinMax.first)};
-    auto maxX{std::min(sXMinMax.second, bXMinMax.second)};
+                               int start = sX - reach + std::abs(sY - rowIndex);
+                               int end = sX + reach - std::abs(sY - rowIndex);
+                               for(int x = start; x <= end; x++)
+                               {
+                                   Beacon testPosition{x, rowIndex};
+                                   if(testPosition != beacon)
+                                       set.insert(x);
+                               }
+                               return set;
+                           })
+            .size());
+}
 
-    // row 2000000
-    auto invalidCount{0};
-    for(auto x = minX - dMax; x < maxX; ++x)
+int64_t computeTuningFrequency(const Beacon & beacon)
+{
+    return static_cast<int64_t>(beacon.first) * 4000000LL +
+           static_cast<int64_t>(beacon.second);
+}
+
+int64_t FindPossibleLocation(const Input & input)
+{
+    for(auto row{0}; row < 4000000; ++row)
     {
-        Beacon beak {x, 2000000};
-        for(const auto& [index, dist] : ranges::views::enumerate(d))
+        for(auto column{0}; column <= 4000000;)
         {
-            auto posDis{ManhattanDistance(input[index].first, beak)};
-            if(posDis <= dist)
+            bool possible{true};
+            auto pos = std::make_pair(column, row);
+            for(auto & [sensor, beacon] : input)
             {
-                ++invalidCount;
-                break;
+                auto reach = ManhattanDistance(sensor, beacon);
+                auto distance = ManhattanDistance(sensor, pos);
+                const auto & [sX, sY]{sensor};
+                if(reach >= distance)
+                {
+                    // Shift to the end of this sensor
+                    column = sX + reach - std::abs(sY - row) + 1;
+                    possible = false;
+                    break;
+                }
             }
+            if(possible)
+                return computeTuningFrequency({column, row});
         }
     }
-    
-
-    return 0;
+    return std::numeric_limits<int64_t>::max();
 }

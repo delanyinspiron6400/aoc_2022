@@ -6,10 +6,12 @@ add_library(common INTERFACE)
 # Dependencies from vcpkg
 find_package(fmt CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
+find_package(scn CONFIG REQUIRED)
 
 target_link_libraries(common INTERFACE
   fmt::fmt
   range-v3
+  scn::scn
 )
 
 set_property(TARGET common PROPERTY CXX_STANDARD 23)
