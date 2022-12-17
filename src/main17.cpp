@@ -32,6 +32,10 @@ struct Point
     int x{};
     int y{};
 
+    // Point() = default;
+    // Point(int x, int y): x{x}, y{y} {}
+    // Point(const Point& other) = default;
+
     Point & operator+=(const Point & other)
     {
         x += other.x;
@@ -169,7 +173,7 @@ std::vector<Rock> rocks{Line, Plus, L, VertLine, Square};
 std::vector<int> rockHeight{1, 3, 3, 4, 2};
 
 Input ParseInput(auto && input);
-int LetTheRocksFall(const Input& directions, int64_t rounds);
+int64_t LetTheRocksFall(const Input& directions, int64_t rounds);
 
 auto main(int argc, char * argv[]) -> int
 {
@@ -178,6 +182,8 @@ auto main(int argc, char * argv[]) -> int
     auto directions = ParseInput(std::fstream("../input/aoc17_test.txt"));
 
     fmt::print("Task 1: Height is: {}\n", LetTheRocksFall(directions, 2022));
+
+    fmt::print("Task 1: Height is: {}\n", LetTheRocksFall(directions, 1000000000000));
 
     return 0;
 }
@@ -221,12 +227,13 @@ auto ParseInput(auto && input) -> Input
             return Direction::RIGHT;}) | to<Input>;
 }
 
-int LetTheRocksFall(const Input& directions, int64_t rounds)
+int64_t LetTheRocksFall(const Input& directions, int64_t rounds)
 {
     std::unordered_set<Point, PointHash> placedRocks{{0,0}, {1,0}, {2,0}, {3,0}, {4,0}, {5,0}, {6,0}};
     auto currentHeight{0};
     auto directionIndex{0};
-    for (auto rockCount{0LL}; rockCount < rounds; ++rockCount)
+    int64_t heightPruned{0};
+    for (int64_t rockCount{0LL}; rockCount < rounds; ++rockCount)
     {
         auto currentRock {rocks[rockCount % 5] + Point{2, -(currentHeight + 3 + rockHeight[rockCount % 5])}};
 
@@ -245,6 +252,7 @@ int LetTheRocksFall(const Input& directions, int64_t rounds)
             if(MoveRock(placedRocks, currentRock, Direction::DOWN) == State::PLACE)
             {
                 currentHeight = std::max(currentHeight, Height(currentRock));
+                
                 // std::cout << "RockIndex: " << rockCount << " with height " << currentHeight << std::endl;
                 // printMap(placedRocks);
                 // std::getchar();
@@ -257,6 +265,25 @@ int LetTheRocksFall(const Input& directions, int64_t rounds)
             // printMap(rockCopy2);
             // std::getchar();
         }
+
+        if(rockCount % 10000 == 9999)
+        {
+            auto pruningHeight{currentHeight - 100};
+            std::erase_if(placedRocks, [pruningHeight](auto point){return std::abs(point.y) < pruningHeight;});
+            // fmt::print("Current Height {}\n", currentHeight);
+            std::unordered_set<Point, PointHash> newRocks;
+            for(auto& p : placedRocks)
+            {
+                if(std::abs(p.y) < pruningHeight)
+                    continue;
+                newRocks.insert(Point{0, pruningHeight} + p);
+            }
+            placedRocks = newRocks;
+            
+            currentHeight -= pruningHeight;
+            heightPruned += pruningHeight;
+            fmt::print("Round {} - {:.3f}%\n", rockCount, (static_cast<double>(rockCount) / static_cast<double>(rounds)) * 100.0);
+        }
     }
-    return currentHeight;
+    return currentHeight + heightPruned;
 }
